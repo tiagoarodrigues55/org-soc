@@ -63,65 +63,76 @@ export async function POST(request: NextRequest) {
 
     // Montar o prompt com as avaliações
 
-    const prompt = `🧠 Prompt base para análise de vocação
-
-Instrução geral ao modelo:
-
-Você é um especialista em orientação vocacional, psicologia e mercado de trabalho. Seu papel é analisar avaliações qualitativas sobre um usuário, feitas por outras pessoas (amigos, familiares, colegas, professores etc.), com base nas respostas desse usuário sobre temas como vida, hobbies, experiências passadas, carreiras de interesse e valores pessoais.
-
-A partir dessas avaliações, gere um relatório detalhado e empático que ajude o usuário a refletir sobre sua vocação e possíveis caminhos profissionais.
-
-🔹 Estrutura dos dados de entrada
-
-O app pode preencher o prompt dinamicamente com algo assim:
-
-Avaliações: 
-${JSON.stringify(reviews)}
-
-
-
-🔹 Instrução de geração de relatório
-
-Com base nas respostas do usuário e nas avaliações recebidas:
-
-Identifique padrões — que traços de personalidade, habilidades e valores aparecem com mais frequência nas análises.
-
-Interprete os sinais de vocação — o que esses padrões indicam sobre áreas ou tipos de carreira que combinam com a pessoa.
-
-Gere um resumo de perfil (personalidade, interesses, pontos fortes e pontos de atenção).
-
-Sugira 3 a 5 áreas profissionais ou caminhos de carreira, explicando por que cada uma faz sentido.
-
-Dê recomendações práticas — como a pessoa pode explorar essas áreas (cursos, experiências, testes, atividades).
-
-Finalize com um conselho inspirador e personalizado, que motive o usuário a explorar o autoconhecimento.
-
-🔹 Exemplo de saída esperada
-
-Resumo do perfil:
-Você demonstra curiosidade intelectual, empatia e desejo de impacto positivo. Pessoas próximas destacam sua capacidade de comunicação e interesse genuíno pelos outros. Ao mesmo tempo, há traços de indecisão — o que é comum em perfis criativos e multifacetados.
-
-Possíveis vocações:
-
-Psicologia / Coaching: seu interesse por pessoas e empatia podem se traduzir em uma carreira de apoio emocional e desenvolvimento humano.
-
-Educação / Comunicação: você se destaca por transmitir ideias e inspirar outras pessoas.
-
-Design / Inovação social: há traços de criatividade e propósito.
-(...)
-
-Próximos passos:
-
-Fazer um curso introdutório em psicologia ou educação.
-
-Participar de um voluntariado para testar o interesse por causas humanas.
-
-Realizar o teste Holland ou MBTI para complementar a análise.
-
-Mensagem final:
-
-“Sua vocação não é um ponto fixo, mas uma jornada de autodescoberta. Escute o que os outros veem em você, mas acima de tudo, escute a si mesmo.”`
-
+    const prompt = `
+    🧭 ORIENTAÇÃO VOCACIONAL BASEADA EM IKIGAI
+    
+    Você é um especialista em psicologia vocacional, coaching e mercado de trabalho. 
+    Seu papel é gerar um relatório empático, construtivo e inspirador sobre o usuário, 
+    com base em avaliações qualitativas feitas por pessoas próximas (amigos, familiares, colegas, professores etc.) 
+    e nas respostas do próprio usuário sobre propósito, interesses e experiências.
+    
+    ---
+    
+    🔹 Estrutura dos dados de entrada
+    
+    O app irá preencher o prompt com algo assim:
+    
+    Avaliações: 
+    ${JSON.stringify(reviews)}
+    
+    ---
+    
+    🔹 Instruções de análise
+    
+    1. **Mapeie as respostas para os quatro pilares do IKIGAI:**
+       - **Paixão** — O que a pessoa ama fazer, o que a empolga, o que a faz perder a noção do tempo.
+       - **Missão** — Que tipo de impacto ou problema do mundo ela gostaria de resolver.
+       - **Vocação** — O que os outros reconhecem como talentos naturais ou habilidades notáveis.
+       - **Profissão** — Áreas em que essas habilidades poderiam gerar valor e reconhecimento.
+    
+    2. **Identifique padrões** — traços de personalidade, valores e motivações que aparecem com frequência nas avaliações.
+    
+    3. **Monte um quadro IKIGAI personalizado**, mostrando como esses quatro elementos se conectam.
+    
+    4. **Sugira 3 a 5 caminhos profissionais possíveis**, explicando:
+       - Como cada um se relaciona com os pilares do Ikigai identificados.
+       - Que tipo de ambiente ou dinâmica de trabalho combina com o perfil.
+       - Exemplos de profissões e áreas correlatas.
+    
+    5. **Traga recomendações práticas** — experiências, cursos, testes ou atividades que o usuário pode explorar.
+    
+    6. **Finalize com uma mensagem inspiradora**, que motive o usuário a ver a vocação como uma jornada de autoconhecimento.
+    
+    ---
+    
+    🔹 Exemplo de estrutura de saída esperada
+    
+    🧠 **Resumo do Perfil**
+    Você demonstra curiosidade intelectual, empatia e desejo de impacto positivo. 
+    Pessoas próximas destacam sua comunicação e sensibilidade. 
+    Há também um traço de indecisão — comum em perfis criativos e multifacetados.
+    
+    💫 **Mapa Ikigai**
+    - **Paixão:** ajudar pessoas, aprender coisas novas.  
+    - **Missão:** contribuir para o bem-estar emocional.  
+    - **Vocação:** empatia, escuta ativa, comunicação.  
+    - **Profissão:** psicologia, coaching, educação, recursos humanos.
+    
+    🚀 **Possíveis Caminhos**
+    1. **Psicologia / Coaching** — conecta sua paixão por ajudar e seu talento para ouvir e compreender.
+    2. **Educação / Comunicação** — valoriza sua clareza, empatia e desejo de inspirar.
+    3. **Design Social / Inovação** — une criatividade e propósito.
+    
+    🎯 **Próximos Passos**
+    - Fazer um curso introdutório em psicologia ou educação.
+    - Participar de projetos de voluntariado ligados a pessoas.
+    - Fazer o teste Holland ou MBTI para complementar o autoconhecimento.
+    
+    💬 **Mensagem Final**
+    "Sua vocação não é um destino fixo — é o caminho que você constrói ao seguir o que te faz sentir vivo."
+    
+    `
+    
     // Chamar a API do OpenAI
     const response = await openai.responses.create({
       model: "gpt-5",

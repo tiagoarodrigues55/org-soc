@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import jsPDF from 'jspdf'
 
 interface Player {
   id: string
@@ -81,6 +82,137 @@ export default function Relatorios() {
       console.error('Erro ao carregar relatórios salvos:', error)
     } finally {
       setLoadingReports(false)
+    }
+  }
+
+  const generatePDF = async (playerName: string, analysis: string, vocationalRecommendation: string, createdAt?: string) => {
+    try {
+      const doc = new jsPDF()
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const margin = 20
+      const maxWidth = pageWidth - (margin * 2)
+      let yPosition = margin
+
+      // Título
+      doc.setFontSize(18)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Relatório de Avaliação', margin, yPosition)
+      yPosition += 10
+
+      // Nome do jogador
+      doc.setFontSize(14)
+      doc.text(playerName, margin, yPosition)
+      yPosition += 8
+
+      // Data
+      if (createdAt) {
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'normal')
+        const date = new Date(createdAt).toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+        doc.text(`Data: ${date}`, margin, yPosition)
+        yPosition += 10
+      } else {
+        yPosition += 5
+      }
+
+      // Análise de Perfil
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Análise de Perfil', margin, yPosition)
+      yPosition += 7
+
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      const analysisLines = doc.splitTextToSize(analysis, maxWidth)
+
+      for (const line of analysisLines) {
+        if (yPosition > pageHeight - margin) {
+          doc.addPage()
+          yPosition = margin
+        }
+        doc.text(line, margin, yPosition)
+        yPosition += 5
+      }
+
+      yPosition += 10
+
+      // Recomendação Vocacional
+      if (yPosition > pageHeight - margin - 20) {
+        doc.addPage()
+        yPosition = margin
+      }
+
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Recomendação Vocacional', margin, yPosition)
+      yPosition += 7
+
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      const recommendationLines = doc.splitTextToSize(vocationalRecommendation, maxWidth)
+
+      for (const line of recommendationLines) {
+        if (yPosition > pageHeight - margin) {
+          doc.addPage()
+          yPosition = margin
+        }
+        doc.text(line, margin, yPosition)
+        yPosition += 5
+      }
+
+      return doc
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error)
+      throw error
+    }
+  }
+
+  const downloadPDF = async (playerName: string, analysis: string, vocationalRecommendation: string, createdAt?: string) => {
+    try {
+      const doc = await generatePDF(playerName, analysis, vocationalRecommendation, createdAt)
+      const fileName = `relatorio_${playerName.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`
+      doc.save(fileName)
+    } catch {
+      alert('Erro ao baixar PDF. Tente novamente.')
+    }
+  }
+
+  const sharePDF = async (playerName: string, analysis: string, vocationalRecommendation: string, createdAt?: string) => {
+    try {
+      const doc = await generatePDF(playerName, analysis, vocationalRecommendation, createdAt)
+      const pdfBlob = doc.output('blob')
+      const fileName = `relatorio_${playerName.replace(/\s+/g, '_')}.pdf`
+
+      // Verificar se a Web Share API está disponível
+      if (navigator.share && navigator.canShare) {
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
+        const canShare = navigator.canShare({ files: [file] })
+
+        if (canShare) {
+          await navigator.share({
+            title: `Relatório de ${playerName}`,
+            text: 'Confira o relatório de avaliação',
+            files: [file]
+          })
+        } else {
+          // Fallback para download
+          downloadPDF(playerName, analysis, vocationalRecommendation, createdAt)
+        }
+      } else {
+        // Fallback para download se Web Share API não estiver disponível
+        downloadPDF(playerName, analysis, vocationalRecommendation, createdAt)
+      }
+    } catch (error) {
+      console.error('Erro ao compartilhar:', error)
+      // Fallback para download em caso de erro
+      downloadPDF(playerName, analysis, vocationalRecommendation, createdAt)
     }
   }
 
@@ -184,9 +316,43 @@ export default function Relatorios() {
         {/* Relatório Gerado */}
         {report && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Relatório de {selectedPlayer?.name}
-            </h2>
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Relatório de {selectedPlayer?.name}
+              </h2>
+
+              {/* Botões de Ação - Topo */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => sharePDF(
+                    selectedPlayer?.name || 'Jogador',
+                    report.analysis,
+                    report.vocationalRecommendation,
+                    report.createdAt
+                  )}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Compartilhar PDF"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => downloadPDF(
+                    selectedPlayer?.name || 'Jogador',
+                    report.analysis,
+                    report.vocationalRecommendation,
+                    report.createdAt
+                  )}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Baixar PDF"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
             <div className="space-y-6">
               <div>
@@ -235,19 +401,53 @@ export default function Relatorios() {
               <div className="space-y-6">
                 {savedReports.map((savedReport, index) => (
                   <div key={savedReport.id} className="border-b border-gray-200 pb-6 last:border-b-0">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-semibold text-purple-700">
-                        Relatório #{savedReports.length - index}
-                      </h3>
-                      <span className="text-sm text-gray-500">
-                        {new Date(savedReport.created_at).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-lg font-semibold text-purple-700">
+                          Relatório #{savedReports.length - index}
+                        </h3>
+                        <span className="text-sm text-gray-500">
+                          {new Date(savedReport.created_at).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+
+                      {/* Botões de Ação - Topo */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => sharePDF(
+                            selectedPlayer?.name || 'Jogador',
+                            savedReport.analysis,
+                            savedReport.vocational_recommendation,
+                            savedReport.created_at
+                          )}
+                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Compartilhar PDF"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => downloadPDF(
+                            selectedPlayer?.name || 'Jogador',
+                            savedReport.analysis,
+                            savedReport.vocational_recommendation,
+                            savedReport.created_at
+                          )}
+                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Baixar PDF"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-4">
