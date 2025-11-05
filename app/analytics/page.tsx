@@ -133,7 +133,7 @@ export default function Analytics() {
               Nenhuma análise carregada
             </h3>
             <p className="text-gray-600 mb-6">
-              Clique em "Atualizar Análise" para gerar insights baseados nas avaliações
+              Clique em Atualizar Análise para gerar insights baseados nas avaliações
             </p>
           </div>
         )}
