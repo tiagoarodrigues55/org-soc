@@ -455,11 +455,6 @@ export default function Relatorios() {
                         <h4 className="font-semibold text-gray-700 mb-2">Análise de Perfil:</h4>
                         <p className="text-gray-600 whitespace-pre-wrap">{savedReport.analysis}</p>
                       </div>
-
-                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-2">Recomendação Vocacional:</h4>
-                        <p className="text-gray-600 whitespace-pre-wrap">{savedReport.vocational_recommendation}</p>
-                      </div>
                     </div>
                   </div>
                 ))}

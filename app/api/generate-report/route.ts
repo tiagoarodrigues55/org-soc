@@ -41,8 +41,7 @@ export async function POST(request: NextRequest) {
       .from('reviews')
       .select(`
         message,
-        created_at,
-        players:reviewer_id (name)
+        created_at
       `)
       .eq('target_player_id', playerId)
       .order('created_at', { ascending: false })
@@ -64,6 +63,8 @@ export async function POST(request: NextRequest) {
     // Montar o prompt com as avaliações
 
     const prompt = `
+
+    Não inclua textos adicionais, apenas o relatório em markdown!
     🧭 ORIENTAÇÃO VOCACIONAL BASEADA EM IKIGAI
     
     Você é um especialista em psicologia vocacional, coaching e mercado de trabalho. 
@@ -135,12 +136,15 @@ export async function POST(request: NextRequest) {
     
     // Chamar a API do OpenAI
     const response = await openai.responses.create({
-      model: "gpt-5",
+      model: "gpt-5-mini",
       input: prompt,
     });
     
 
     const result = response.output_text
+
+    console.log(prompt)
+    console.log(result)
 
     // Salvar relatório no banco de dados
     const { data: savedReport, error: saveError } = await supabase

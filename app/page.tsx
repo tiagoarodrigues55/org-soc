@@ -77,12 +77,18 @@ export default function Home() {
           <p>Escaneie o QR code para acessar</p>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
+        <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
           <button
             onClick={() => router.push('/relatorios')}
             className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
           >
             Gerar Relatório
+          </button>
+          <button
+            onClick={() => router.push('/analytics')}
+            className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+          >
+            Ver Analytics Geral
           </button>
         </div>
       </div>
