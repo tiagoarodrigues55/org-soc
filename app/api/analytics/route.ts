@@ -52,7 +52,8 @@ export async function GET() {
     }
 
     // Preparar dados para o GPT
-    const reviewsText = reviews.map(r => ({
+
+    const reviewsText = reviews.map((r: any) => ({
       reviewer: r.players?.name || 'Anônimo',
       target: r.target?.name || 'Desconhecido',
       message: r.message
