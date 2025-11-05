@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
     
     // Chamar a API do OpenAI
     const response = await openai.responses.create({
-      model: "gpt-5-mini",
+      model: "gpt-5-nano",
       input: prompt,
     });
     

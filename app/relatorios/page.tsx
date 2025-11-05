@@ -364,14 +364,6 @@ export default function Relatorios() {
                 </div>
               </div>
 
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-purple-700 mb-2">
-                  Recomendação Vocacional
-                </h3>
-                <div className="text-gray-700 whitespace-pre-wrap">
-                  {report.vocationalRecommendation}
-                </div>
-              </div>
             </div>
           </div>
         )}
